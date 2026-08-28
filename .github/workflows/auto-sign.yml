@@ -2,8 +2,8 @@ name: Auto Sign
 
 on:
   schedule:
-    # 00:00 UTC = 08:00 Asia/Shanghai
-    - cron: "0 0 * * *"
+    # ========== 改动1：北京时间 00:05（UTC+8）→ UTC 16:05 ==========
+    - cron: "5 16 * * *"
   workflow_dispatch:
 
 permissions:
@@ -15,16 +15,17 @@ jobs:
     timeout-minutes: 20
     env:
       TOKEN: ${{ secrets.NTE_TOKEN }}
+      # ========== 改动2：注入方糖 SendKey（GitHub Secrets 里配 SCKEY） ==========
+      SCKEY: ${{ secrets.SCKEY }}
       EXIT_WHEN_FAIL: on
       NO_PAUSE: "1"
       TZ: Asia/Shanghai
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v4
         with:
           python-version: "3.13"
           cache: pip
@@ -41,5 +42,6 @@ jobs:
             exit 1
           fi
 
-      - name: Run auto sign
-        run: python nte.py
+      # ========== 改动3：入口换成带方糖推送的包装脚本 ==========
+      - name: Run auto sign (with notify)
+        run: python run_and_notify.py
